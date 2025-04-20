@@ -1,18 +1,16 @@
-name: CI
-
-on:
-  push:             # runs on every push to any branch
-  pull_request:     # optional: also run on PRs
-
 jobs:
   expo-test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4          # Node 18 for Expo 49+
+        with:
+          node-version: 18
+          cache: 'npm'
+
       - uses: expo/expo-github-action@v8
         with:
-          expo-version: 7          # or "latest" for the newest CLI
-          expo-cache: true         # speed up installs
-          packager: true           # run 'expo start' headlessly
+          expo-version: latest              # <-- fixed
+          expo-cache: true
+          packager: true
