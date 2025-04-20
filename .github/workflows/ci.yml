@@ -1,1 +1,18 @@
-yaml<br>name: CI\non: [push]\njobs:\n expo-test:\n runs-on: ubuntu-latest\n steps:\n - uses: actions/checkout@v4\n - uses: expo/expo-github-action@v8\n with:\n expo-version: 7\n expo-cache: true\n packager: true\n
+name: CI
+
+on:
+  push:             # runs on every push to any branch
+  pull_request:     # optional: also run on PRs
+
+jobs:
+  expo-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: expo/expo-github-action@v8
+        with:
+          expo-version: 7          # or "latest" for the newest CLI
+          expo-cache: true         # speed up installs
+          packager: true           # run 'expo start' headlessly
