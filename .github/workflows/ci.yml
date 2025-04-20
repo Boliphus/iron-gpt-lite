@@ -1,0 +1,1 @@
+yaml<br>name: CI\non: [push]\njobs:\n expo-test:\n runs-on: ubuntu-latest\n steps:\n - uses: actions/checkout@v4\n - uses: expo/expo-github-action@v8\n with:\n expo-version: 7\n expo-cache: true\n packager: true\n
