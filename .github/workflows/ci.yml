@@ -1,16 +1,23 @@
+name: CI
+
+on:                          # ── event triggers ──
+  push:                      # run on every push
+  pull_request:              #   and on PRs (optional)
+
 jobs:
   expo-test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4          # Node 18 for Expo 49+
+      - uses: actions/setup-node@v4        # pin Node 18  (good for expo)
         with:
           node-version: 18
           cache: 'npm'
 
       - uses: expo/expo-github-action@v8
         with:
-          expo-version: latest              # <-- fixed
-          expo-cache: true
-          packager: true
+          expo-version: latest             # ← no “7”; grabs newest CLI
+          expo-cache: true                 # caches node_modules/.expo
+          packager: true                   # runs `expo start` headlessly
