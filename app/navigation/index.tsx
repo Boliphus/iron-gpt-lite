@@ -5,6 +5,7 @@ import {
   createBottomTabNavigator,
   type BottomTabNavigationOptions,
 } from '@react-navigation/bottom-tabs';
+import type { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -12,12 +13,14 @@ import ChatScreen from '../screens/ChatScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import NutritionScreen from '../screens/NutritionScreen';
 import ProgressScreen from '../screens/ProgressScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 export type RootTabsParamList = {
   Chat: undefined;
   Workout: undefined;
   Nutrition: undefined;
   Progress: undefined;
+  Profile: undefined;
 };
 
 const Tab = createBottomTabNavigator();
@@ -30,24 +33,43 @@ export default function RootNavigator() {
       <Tab.Navigator
         screenOptions={({
           route,
+        }: {
+          route: RouteProp<RootTabsParamList, keyof RootTabsParamList>;
         }): BottomTabNavigationOptions => ({
           headerShown: false,
-          tabBarIcon: ({ color, size }) => {
+          tabBarIcon: ({
+            color,
+            size,
+          }: {
+            color: string;
+            size: number;
+          }) => {
             let iconName: React.ComponentProps<typeof Ionicons>['name'];
             switch (route.name) {
-              case 'Chat':      iconName = 'chatbubble-ellipses-outline'; break;
-              case 'Workout':   iconName = 'barbell-outline';             break;
-              case 'Nutrition': iconName = 'restaurant-outline';         break;
-              case 'Progress':  iconName = 'stats-chart-outline';        break;
-              default:          iconName = 'ellipse-outline';
+              case 'Chat':
+                iconName = 'chatbubble-ellipses-outline';
+                break;
+              case 'Workout':
+                iconName = 'barbell-outline';
+                break;
+              case 'Nutrition':
+                iconName = 'restaurant-outline';
+                break;
+              case 'Progress':
+                iconName = 'stats-chart-outline';
+                break;
+              case 'Profile':
+                iconName = 'person-outline';
+                break;
+              default:
+                iconName = 'ellipse-outline';
             }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-          // white icon on a dark bg:
-          tabBarActiveTintColor:   '#fff',
+          tabBarActiveTintColor: '#fff',
           tabBarInactiveTintColor: '#888',
           tabBarStyle: {
-            backgroundColor: palette.bg,    // ← use dark bg
+            backgroundColor: palette.bg,
             borderTopWidth: 0,
             height: 64,
             paddingBottom: 8,
@@ -60,14 +82,15 @@ export default function RootNavigator() {
           tabBarLabelStyle: {
             fontSize: 12,
             fontWeight: '600',
-            color: '#fff',                  // ensure label is white
+            color: '#fff',
           },
         })}
       >
-        <Tab.Screen name="Chat"      component={ChatScreen} />
-        <Tab.Screen name="Workout"   component={WorkoutScreen} />
+        <Tab.Screen name="Chat" component={ChatScreen} />
+        <Tab.Screen name="Workout" component={WorkoutScreen} />
         <Tab.Screen name="Nutrition" component={NutritionScreen} />
-        <Tab.Screen name="Progress"  component={ProgressScreen} />
+        <Tab.Screen name="Progress" component={ProgressScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -1,8 +1,10 @@
+// app/store/slices/nutritionSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import type { NutritionPlan } from '../../types/plans';
 import { generateNutritionPlan } from '../../services/openai';
 
 export interface NutritionState {
-  plan: string | null;
+  plan: NutritionPlan | null;
   generating: boolean;
   error?: string;
 }
@@ -13,7 +15,9 @@ const initialState: NutritionState = {
 };
 
 export const fetchNutritionPlan = createAsyncThunk<
-  string, string, { rejectValue: string }
+  NutritionPlan,      // return type
+  string,             // arg type (requirements)
+  { rejectValue: string }
 >(
   'nutrition/fetchPlan',
   async (req, { rejectWithValue }) => {
@@ -42,7 +46,7 @@ const nutritionSlice = createSlice({
       })
       .addCase(
         fetchNutritionPlan.fulfilled,
-        (state, action: PayloadAction<string>) => {
+        (state, action: PayloadAction<NutritionPlan>) => {
           state.generating = false;
           state.plan = action.payload;
         }

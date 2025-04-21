@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {
   ScrollView,
   SafeAreaView,
-  View,
   Text,
   TextInput,
   Pressable,
@@ -17,6 +16,7 @@ import {
   fetchNutritionPlan,
   clearNutrition,
 } from '../store/slices/nutritionSlice';
+import NutritionDayCard from '../components/NutritionDayCard';
 
 export default function NutritionScreen() {
   const { palette } = useTheme();
@@ -35,7 +35,7 @@ export default function NutritionScreen() {
     setRequirements('');
   };
 
-  const center = !plan;
+  const center = !plan && !generating;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: palette.bg }]}>
@@ -93,21 +93,18 @@ export default function NutritionScreen() {
         )}
 
         {plan && (
-          <View
-            style={[styles.planBox, { backgroundColor: palette.card }]}
-          >
-            <Text style={[styles.planTitle, { color: palette.text }]}>
-              Your Meal Plan
-            </Text>
-            <Text style={[styles.planText, { color: palette.text }]}>
-              {plan}
-            </Text>
+          <>
+            {plan.week.map((day) => (
+              <NutritionDayCard
+                key={day.day}
+                day={day.day}
+                meals={day.meals}
+              />
+            ))}
+
             <Pressable
               onPress={handleClear}
-              style={[
-                styles.clearBtn,
-                { borderColor: palette.accent },
-              ]}
+              style={[styles.clearBtn, { borderColor: palette.accent }]}
             >
               <Text
                 style={[styles.clearText, { color: palette.accent }]}
@@ -115,7 +112,7 @@ export default function NutritionScreen() {
                 Start Over
               </Text>
             </Pressable>
-          </View>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -147,9 +144,6 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontSize: 16, fontWeight: '600' },
   error: { textAlign: 'center', marginTop: 8 },
-  planBox: { marginTop: 24, padding: 16, borderRadius: 8 },
-  planTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  planText: { fontSize: 14, lineHeight: 22 },
   clearBtn: {
     marginTop: 16,
     alignSelf: 'center',

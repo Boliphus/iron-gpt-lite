@@ -14,6 +14,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
 import { fetchWorkoutPlan, clearPlan } from '../store/slices/workoutSlice';
+import WorkoutDayCard from '../components/WorkoutDayCard';
 
 export default function WorkoutScreen() {
   const { palette } = useTheme();
@@ -33,8 +34,8 @@ export default function WorkoutScreen() {
     setGoal('');
   };
 
-  // Center whenever there is no plan yet
-  const center = !plan;
+  // Center input/button when no plan yet
+  const center = !plan && !generating;
 
   return (
     <ScrollView
@@ -58,7 +59,6 @@ export default function WorkoutScreen() {
         onChangeText={setGoal}
         placeholder="e.g. Build upper-body strength"
         placeholderTextColor={palette.text + '80'}
-        // single line will scroll horizontally if text overflows
         multiline={false}
       />
 
@@ -67,7 +67,10 @@ export default function WorkoutScreen() {
         disabled={generating}
         style={[
           styles.button,
-          { backgroundColor: palette.accent, opacity: generating ? 0.6 : 1 },
+          {
+            backgroundColor: palette.accent,
+            opacity: generating ? 0.6 : 1,
+          },
         ]}
       >
         <Text style={[styles.btnText, { color: palette.bg }]}>
@@ -89,12 +92,14 @@ export default function WorkoutScreen() {
 
       {plan != null && (
         <>
-          <Text style={[styles.sectionTitle, { color: palette.text }]}>
-            Your Plan
-          </Text>
-          <Text style={[styles.planText, { color: palette.text }]}>
-            {plan}
-          </Text>
+          {plan.week.map((day) => (
+            <WorkoutDayCard
+              key={day.day}
+              day={day.day}
+              exercises={day.exercises}
+            />
+          ))}
+
           <Pressable
             onPress={handleClear}
             style={[styles.clearBtn, { borderColor: palette.accent }]}
@@ -112,17 +117,12 @@ export default function WorkoutScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16 },
-
-  // New: center children vertically + horizontally
   centerContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   label: { fontSize: 16, marginBottom: 8 },
-
-  // Fixed width so it doesn’t grow/shrink awkwardly
   input: {
     width: '80%',
     borderWidth: 1,
@@ -130,8 +130,6 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 12,
   },
-
-  // Same width as input to keep alignment
   button: {
     width: '80%',
     padding: 12,
@@ -140,16 +138,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   btnText: { fontSize: 16, fontWeight: '600' },
-
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  planText: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
-
+  error: { marginVertical: 8 },
   clearBtn: {
     padding: 8,
     borderRadius: 6,
     borderWidth: 1,
     alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 32,
   },
-
-  error: { marginVertical: 8 },
 });

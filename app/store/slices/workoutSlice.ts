@@ -1,8 +1,10 @@
+// app/store/slices/workoutSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import type { WorkoutPlan } from '../../types/plans';
 import { generateWorkoutPlan } from '../../services/openai';
 
 export interface WorkoutState {
-  plan: string | null;
+  plan: WorkoutPlan | null;
   generating: boolean;
   error?: string;
 }
@@ -13,16 +15,19 @@ const initialState: WorkoutState = {
 };
 
 export const fetchWorkoutPlan = createAsyncThunk<
-  string, // returned plan
-  string, // goal
+  WorkoutPlan,        // return type
+  string,             // arg type (goal)
   { rejectValue: string }
->('workout/fetchPlan', async (goal, { rejectWithValue }) => {
-  try {
-    return await generateWorkoutPlan(goal);
-  } catch (err: any) {
-    return rejectWithValue(err.message ?? 'API error');
+>(
+  'workout/fetchPlan',
+  async (goal, { rejectWithValue }) => {
+    try {
+      return await generateWorkoutPlan(goal);
+    } catch (err: any) {
+      return rejectWithValue(err.message ?? 'API error');
+    }
   }
-});
+);
 
 const workoutSlice = createSlice({
   name: 'workout',
@@ -39,10 +44,13 @@ const workoutSlice = createSlice({
         state.generating = true;
         state.error = undefined;
       })
-      .addCase(fetchWorkoutPlan.fulfilled, (state, action: PayloadAction<string>) => {
-        state.generating = false;
-        state.plan = action.payload;
-      })
+      .addCase(
+        fetchWorkoutPlan.fulfilled,
+        (state, action: PayloadAction<WorkoutPlan>) => {
+          state.generating = false;
+          state.plan = action.payload;
+        }
+      )
       .addCase(fetchWorkoutPlan.rejected, (state, action) => {
         state.generating = false;
         state.error = action.payload;
