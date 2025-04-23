@@ -8,91 +8,133 @@ import {
   Pressable,
   ActivityIndicator,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
-
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
 import { fetchWorkoutPlan, clearPlan } from '../store/slices/workoutSlice';
 import WorkoutDayCard from '../components/WorkoutDayCard';
 
+const { height: screenHeight } = Dimensions.get('window');
+
 export default function WorkoutScreen() {
   const { palette } = useTheme();
   const dispatch = useDispatch<AppDispatch>();
-  const { plan, generating, error } = useSelector(
-    (s: RootState) => s.workout
-  );
+  const { plan, generating, error } = useSelector((s: RootState) => s.workout);
   const [goal, setGoal] = useState('');
+
+  // Preferences UI
+  const workoutOptions = [
+    'Indoor',
+    'Outdoor',
+    'No Equipment',
+    'Beginner Friendly',
+    'Flexibility',
+  ];
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const showPrefs = !plan && !generating;
+  const toggleOption = (opt: string) =>
+    setSelectedOptions(prev =>
+      prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]
+    );
 
   const handleGenerate = () => {
     if (!goal.trim()) return;
-    dispatch(fetchWorkoutPlan(goal.trim()));
+    dispatch(fetchWorkoutPlan({ goal: goal.trim(), preferences: selectedOptions }));
   };
 
   const handleClear = () => {
     dispatch(clearPlan());
     setGoal('');
+    setSelectedOptions([]);
   };
-
-  // Center input/button when no plan yet
-  const center = !plan && !generating;
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: palette.bg }]}
-      contentContainerStyle={[
-        styles.content,
-        center && styles.centerContent,
-      ]}
+      contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={[styles.label, { color: palette.text }]}>
-        What’s your training goal?
-      </Text>
+      {showPrefs && (
+        <View style={[styles.prefsSection, { marginTop: screenHeight * 0.4 }]}>
+          {workoutOptions.map(opt => {
+            const selected = selectedOptions.includes(opt);
+            return (
+              <Pressable
+                key={opt}
+                onPress={() => toggleOption(opt)}
+                style={[
+                  styles.prefsButton,
+                  {
+                    borderColor: palette.accent,
+                    backgroundColor: selected ? palette.accent : 'transparent',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.prefsText,
+                    { color: selected ? palette.bg : palette.accent },
+                  ]}
+                >
+                  {opt}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
-      <TextInput
-        style={[
-          styles.input,
-          { color: palette.text, borderColor: palette.accent },
-        ]}
-        value={goal}
-        onChangeText={setGoal}
-        placeholder="e.g. Build upper-body strength"
-        placeholderTextColor={palette.text + '80'}
-        multiline={false}
-      />
-
-      <Pressable
-        onPress={handleGenerate}
-        disabled={generating}
-        style={[
-          styles.button,
-          {
-            backgroundColor: palette.accent,
-            opacity: generating ? 0.6 : 1,
-          },
-        ]}
-      >
-        <Text style={[styles.btnText, { color: palette.bg }]}>
-          {generating ? 'Generating…' : 'Generate Plan'}
+      <View style={styles.inputSection}>
+        <Text style={[styles.label, { color: palette.text }]}>
+          What’s your training goal?
         </Text>
-      </Pressable>
 
-      {generating && (
-        <ActivityIndicator
-          color={palette.accent}
-          style={{ marginVertical: 12 }}
-          size="large"
+        <TextInput
+          style={[
+            styles.input,
+            { color: palette.text, borderColor: palette.accent },
+          ]}
+          value={goal}
+          onChangeText={setGoal}
+          placeholder="e.g. Build upper-body strength"
+          placeholderTextColor={palette.text + '80'}
+          multiline={false}
         />
-      )}
 
-      {error != null && (
-        <Text style={[styles.error, { color: 'red' }]}>{error}</Text>
-      )}
+        <Pressable
+          onPress={handleGenerate}
+          disabled={generating}
+          style={[
+            styles.button,
+            {
+              backgroundColor: palette.accent,
+              opacity: generating ? 0.6 : 1,
+            },
+          ]}
+        >
+          <Text style={[styles.btnText, { color: palette.bg }]}>
+            {generating ? 'Generating…' : 'Generate Plan'}
+          </Text>
+        </Pressable>
+
+        {generating && (
+          <ActivityIndicator
+            color={palette.accent}
+            style={{ marginVertical: 12 }}
+            size="large"
+          />
+        )}
+
+        {error != null && (
+          <Text style={[styles.error, { color: 'red' }]}>{error}</Text>
+        )}
+      </View>
 
       {plan != null && (
-        <>
-          {plan.week.map((day) => (
+        <View style={styles.cardsSection}>
+          {plan.week.map(day => (
             <WorkoutDayCard
               key={day.day}
               day={day.day}
@@ -108,7 +150,7 @@ export default function WorkoutScreen() {
               Start Over
             </Text>
           </Pressable>
-        </>
+        </View>
       )}
     </ScrollView>
   );
@@ -117,11 +159,30 @@ export default function WorkoutScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16 },
-  centerContent: {
-    flex: 1,
+
+  /* Preference buttons moved to mid-screen */
+  prefsSection: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'center',
   },
+  prefsButton: {
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    margin: 4,
+  },
+  prefsText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  inputSection: {
+    alignItems: 'center',
+    paddingTop: 32,
+  },
+
   label: { fontSize: 16, marginBottom: 8 },
   input: {
     width: '80%',
@@ -139,6 +200,11 @@ const styles = StyleSheet.create({
   },
   btnText: { fontSize: 16, fontWeight: '600' },
   error: { marginVertical: 8 },
+
+  cardsSection: {
+    width: '100%',
+  },
+
   clearBtn: {
     padding: 8,
     borderRadius: 6,

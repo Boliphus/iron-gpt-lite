@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type { NutritionPlan } from '../../types/plans';
 import { generateNutritionPlan } from '../../services/openai';
+import type { RootState } from '../../store';
 
 export interface NutritionState {
   plan: NutritionPlan | null;
@@ -12,17 +13,32 @@ export interface NutritionState {
 const initialState: NutritionState = {
   plan: null,
   generating: false,
+  error: undefined,
 };
 
 export const fetchNutritionPlan = createAsyncThunk<
-  NutritionPlan,      // return type
-  string,             // arg type (requirements)
-  { rejectValue: string }
+  NutritionPlan,
+  { requirements: string; preferences: string[] },
+  { state: RootState; rejectValue: string }
 >(
   'nutrition/fetchPlan',
-  async (req, { rejectWithValue }) => {
+  async ({ requirements, preferences }, { getState, rejectWithValue }) => {
+    // pull profile and compute TDEE
+    const { weight, height, age, gender } = getState().profile;
+    const s = gender === 'male' ? 5 : gender === 'female' ? -161 : -78;
+    const bmr = 10 * weight + 6.25 * height - 5 * age + s;
+    const tdee = Math.floor(bmr * 1.55);
+
     try {
-      return await generateNutritionPlan(req);
+      return await generateNutritionPlan(
+        requirements,
+        tdee,
+        preferences,
+        gender,
+        age,
+        height,
+        weight
+      );
     } catch (err: any) {
       return rejectWithValue(err.message ?? 'API error');
     }
@@ -38,9 +54,9 @@ const nutritionSlice = createSlice({
       state.error = undefined;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
-      .addCase(fetchNutritionPlan.pending, (state) => {
+      .addCase(fetchNutritionPlan.pending, state => {
         state.generating = true;
         state.error = undefined;
       })
