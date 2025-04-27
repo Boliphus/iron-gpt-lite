@@ -17,7 +17,15 @@ import type { RootState, AppDispatch } from '../store';
 import { setProfile, clearProfile, Gender } from '../store/slices/profileSlice';
 
 export default function ProfileScreen() {
-  const { palette } = useTheme();
+  const { id, set,palette } = useTheme();
+  const NEXT_THEME: Record<string, string> = {
+    neon: 'holo',
+    holo: 'lofi',
+    lofi: 'sports',
+    sports: 'neon',
+  };
+  const next = NEXT_THEME[id];
+  
   const dispatch = useDispatch<AppDispatch>();
   const saved = useSelector((s: RootState) => s.profile);
 
@@ -139,6 +147,14 @@ export default function ProfileScreen() {
               Clear
             </Text>
           </Pressable>
+          <Pressable
+          onPress={() => set(next)}
+          style={[styles.themeBtn, { backgroundColor: palette.card }]}
+        >
+          <Text style={[styles.themeTxt, { color: palette.text }]}>
+            Switch to {next}
+          </Text>
+        </Pressable>
         </View>
       </TouchableWithoutFeedback>
     </SafeAreaView>
@@ -187,4 +203,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   clearTxt: { fontSize: 14, fontWeight: '600' },
+  themeBtn: {
+    alignSelf: 'center',
+    marginVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  themeTxt: { fontSize: 14, fontWeight: '600' },
 });

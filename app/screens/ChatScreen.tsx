@@ -26,13 +26,7 @@ import {
 export default function HUD() {
   /* ─── theme logic ─── */
   const { id, set, palette } = useTheme();
-  const NEXT_THEME: Record<string, string> = {
-    neon: 'holo',
-    holo: 'lofi',
-    lofi: 'sports',
-    sports: 'neon',
-  };
-  const next = NEXT_THEME[id];
+  
 
   /* ─── chat state ─── */
   const dispatch = useDispatch<AppDispatch>();
@@ -124,14 +118,7 @@ export default function HUD() {
         </View>
 
         {/* theme‑switch button */}
-        <Pressable
-          onPress={() => set(next)}
-          style={[styles.themeBtn, { backgroundColor: palette.card }]}
-        >
-          <Text style={[styles.themeTxt, { color: palette.text }]}>
-            Switch to {next}
-          </Text>
-        </Pressable>
+        
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -158,12 +145,5 @@ const styles = StyleSheet.create({
   sendBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20 },
   sendTxt: { fontWeight: '600', fontSize: 16 },
   /* theme button */
-  themeBtn: {
-    alignSelf: 'center',
-    marginVertical: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  themeTxt: { fontSize: 14, fontWeight: '600' },
+  
 });
