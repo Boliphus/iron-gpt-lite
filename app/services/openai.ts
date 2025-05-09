@@ -1,4 +1,4 @@
-// app/services/opai.ts
+// app/services/openai.ts
 import Constants from 'expo-constants';
 import OpenAI from 'openai';
 import type { WorkoutPlan, NutritionPlan } from '../types/plans';
@@ -27,19 +27,22 @@ export async function chatCompletion(userText: string): Promise<string> {
  */
 export async function generateWorkoutPlan(
   goal: string,
-  preferences: string[],
+  preferences: string[] = [],               // <— default to empty array
   gender: 'male' | 'female' | 'other',
   age: number,
   height: number,
   weight: number,
   tdee: number
 ): Promise<WorkoutPlan> {
-  const prefText = preferences.length
-    ? ` User preferences: ${preferences.join(', ')}.`
+  // ensure prefs is always an array
+  const prefs = Array.isArray(preferences) ? preferences : [];
+  const prefText = prefs.length
+    ? ` User preferences: ${prefs.join(', ')}.`
     : '';
+
   const systemContent = `
 You are “Coach Morgan,” an expert fitness coach. Your client is a ${gender}, ${age} years old, ${height} cm tall, ${weight} kg, with a maintenance TDEE of ${tdee} kcal/day.
-Their stated goal is: “${goal}” and their preferences are: ${preferences.length ? preferences.join(', ') : 'none'}.
+Their stated goal is: “${goal}”${prefText}
 Design a 7-day workout plan that strictly follows their goal in tandem with their nutrition plan.
 - For weight/fat loss: focus on higher-intensity cardio plus resistance to preserve muscle.
 - For muscle gain: prioritize progressive overload resistance and moderate cardio.
@@ -91,8 +94,7 @@ Do NOT include narrative—return only the JSON via the createWorkoutPlan functi
               },
               required: ['week'],
             },
-          },
-        ],
+        }],
         function_call: { name: 'createWorkoutPlan' },
       });
 
@@ -122,18 +124,20 @@ Do NOT include narrative—return only the JSON via the createWorkoutPlan functi
 export async function generateNutritionPlan(
   requirement: string,
   tdee: number,
-  preferences: string[],
+  preferences: string[] = [],               // <— default to empty array
   gender: 'male' | 'female' | 'other',
   age: number,
   height: number,
   weight: number
 ): Promise<NutritionPlan> {
-  const prefText = preferences.length
-    ? ` User preferences: ${preferences.join(', ')}.`
+  const prefs = Array.isArray(preferences) ? preferences : [];
+  const prefText = prefs.length
+    ? ` User preferences: ${prefs.join(', ')}.`
     : '';
+
   const systemContent = `
 You are “Chef Avery,” a registered dietitian specializing in personalized meal plans. Your client is a ${gender}, ${age} years old, ${height} cm tall, ${weight} kg, with a maintenance TDEE of ${tdee} kcal/day.
-Their goal is: “${requirement}” and their preferences are: ${preferences.length ? preferences.join(', ') : 'none'}.
+Their goal is: “${requirement}”${prefText}
 Create a 7-day menu that strictly follows their goal in tandem with their workout plan:
 - For weight/fat loss: target 15–20% deficit below TDEE, protein ≥1.6 g/kg/day.
 - For muscle gain: include 5–10% surplus, protein ≥1.8 g/kg/day.

@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import type { RootState } from '../../store';
 import { chatCompletion } from '../../services/openai';
 
 export interface ChatMsg {
@@ -44,6 +44,14 @@ const chatSlice = createSlice({
         ts: Date.now(),
       });
     },
+    addAssistantMessage(state, action: PayloadAction<string>) {
+      state.messages.push({
+        id: Date.now().toString() + '-bot',
+        role: 'assistant',
+        text: action.payload,
+        ts: Date.now(),
+      });
+    },
     resetChat() {
       return initialState;
     },
@@ -70,5 +78,9 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addUserMessage, resetChat } = chatSlice.actions;
+export const {
+  addUserMessage,
+  addAssistantMessage,
+  resetChat,
+} = chatSlice.actions;
 export const chatReducer = chatSlice.reducer;
